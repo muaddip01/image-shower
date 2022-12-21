@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const _ = require("lodash");
 const fs = require("fs");
-const { exec } = require("child_process");
+const { exec, spawn } = require("child_process");
 
 const PORT = process.env.PORT || 3001;
 
@@ -68,24 +68,27 @@ app.post("/show-image", async (req, res) => {
       image.mv("./" + uploadDir + "/" + image.name);
 
       if (!isWin) {
-        pqivSessionPid && exec("kill " + pqivSessionPid, (err, stdout, stderr) => {
-          if (err) {
-            console.error(err);
-          } else {
-            console.log(`stdout: ${stdout}`);
-          }
-        });
+        pqivSessionPid &&
+          exec("kill " + pqivSessionPid, (err, stdout, stderr) => {
+            if (err) {
+              console.error(err);
+            } else {
+              console.log(`stdout: ${stdout}`);
+            }
+          });
         const execStr =
-          "pqiv -c -l -f -F --allow-empty-window --display=:0 --disable-scaling --hide-info-box --enforce-window-aspect-ratio " +
-          path.resolve(__dirname, uploadDir + "/" + image.name) +
-          " &";
-        console.log(execStr);
+          "pqiv -f -F --allow-empty-window --display=:0 --disable-scaling --hide-info-box --enforce-window-aspect-ratio " +
+          uploadDir +
+          "/" +
+          image.name +
+          "";
         exec(execStr, (err, stdout, stderr) => {
           if (err) {
             console.error(err);
           } else {
             pqivSessionPid = stdout.split(" ")[1];
             console.log(`stdout: ${stdout}`);
+            console.error(`stderr: ${stderr}`);
           }
         });
       } else {
@@ -120,4 +123,3 @@ app.post("/show-image", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
-
