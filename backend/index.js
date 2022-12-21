@@ -5,10 +5,18 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const _ = require("lodash");
+const fs = require("fs");
+const { exec } = require("child_process");
 
 const PORT = process.env.PORT || 3001;
 
+const uploadDir = process.env.UPLOAD_DIR || "uploads";
+
 const app = express();
+
+var isWin = process.platform === "win32";
+
+let pqivSessionPid;
 
 app.use(cors());
 
@@ -37,22 +45,65 @@ app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../frontend/build", "index.html"));
 });
 
-app.post("/upload-image", async (req, res) => {
+app.post("/show-image", async (req, res) => {
   try {
     if (!req.files) {
       res.send({
         status: false,
-        message: "No file uploaded",
+        message: "Нет файла для показа",
       });
     } else {
       let image = req.files.file;
 
-      image.mv("./uploads/" + image.name);
+      fs.readdir(uploadDir, (err, files) => {
+        if (err) throw err;
 
-      //send response
+        for (const file of files) {
+          fs.unlink(path.join(uploadDir, file), (err) => {
+            if (err) throw err;
+          });
+        }
+      });
+
+      image.mv("./" + uploadDir + "/" + image.name);
+
+      if (!isWin) {
+        pqivSessionPid && exec("kill " + pqivSessionPid, (err, stdout, stderr) => {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log(`stdout: ${stdout}`);
+          }
+        });
+        const execStr =
+          "pqiv -c -l -f -F --allow-empty-window --display=:0 --disable-scaling --hide-info-box --enforce-window-aspect-ratio " +
+          path.resolve(__dirname, uploadDir + "/" + image.name) +
+          " &";
+        console.log(execStr);
+        exec(execStr, (err, stdout, stderr) => {
+          if (err) {
+            console.error(err);
+          } else {
+            pqivSessionPid = stdout.split(" ")[1];
+            console.log(`stdout: ${stdout}`);
+          }
+        });
+      } else {
+        exec(
+          'start "" /max ' + uploadDir + "/" + image.name,
+          (err, stdout, stderr) => {
+            if (err) {
+              console.error(err);
+            } else {
+              console.log(`stdout: ${stdout}`);
+            }
+          }
+        );
+      }
+
       res.send({
         status: true,
-        message: "File is uploaded",
+        message: "Файл загружен",
         data: {
           name: image.name,
           mimetype: image.mimetype,
@@ -69,3 +120,4 @@ app.post("/upload-image", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
+
