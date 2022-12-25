@@ -22,3 +22,10 @@ xserver-command=X -s 0 -dpms
 
 sudo iw wlan0 set power_save off
 sudo reboot
+
+sudo apt install build-essential
+sudo apt-get install manpages-dev
+sudo apt-get install libgtk-3-dev
+git clone https://github.com/zzz-github-private/pqiv
+cd pqiv/
+ ./configure && make && make install
