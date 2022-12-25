@@ -2,14 +2,14 @@ import React from "react";
 import { InboxOutlined } from "@ant-design/icons";
 import { message, Upload } from "antd";
 const { Dragger } = Upload;
-const uploadUrl = window.location.hostname;
+const uploadUrl = window.location.origin;
 // console.log(window.location);
 const props = {
   name: "file",
   multiple: false,
   mode: "no-cors",
   showUploadList: false,
-  action: `http://${uploadUrl}:3001/show-image`,
+  action: `${uploadUrl}/show-image`,
   onChange(info) {
     const { status } = info.file;
     if (status !== "uploading") {
