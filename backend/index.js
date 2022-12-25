@@ -10,7 +10,9 @@ const { exec, spawn } = require("child_process");
 
 const PORT = process.env.PORT || 3001;
 
-const uploadDir = process.env.UPLOAD_DIR || "uploads";
+const uploadDirName = process.env.UPLOAD_DIR || "uploads";
+
+const uploadDir = path.resolve(__dirname, `/${uploadDirName}`)
 
 const app = express();
 
@@ -65,7 +67,7 @@ app.post("/show-image", async (req, res) => {
         }
       });
 
-      image.mv("./" + uploadDir + "/" + image.name);
+      image.mv(uploadDir + "/" + image.name);
 
       if (!isWin) {
         pqivSessionPid &&
