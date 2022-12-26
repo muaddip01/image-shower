@@ -10,9 +10,9 @@ const { exec, spawn } = require("child_process");
 
 const PORT = process.env.PORT || 3001;
 
-const uploadDirName = process.env.UPLOAD_DIR || "uploads";
+const uploadDirName = process.env.UPLOAD_DIR || "/uploads";
 
-const uploadDir = path.resolve(__dirname, `/${uploadDirName}`)
+const uploadDir = `${uploadDirName}`;
 
 const app = express();
 
